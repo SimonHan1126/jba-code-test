@@ -49,9 +49,9 @@
       >
       </v-data-table>
     </v-container>
+    <v-divider/>
+    <v-card-title>Charts</v-card-title>
     <v-container>
-      <v-divider/>
-      <v-card-title>Charts</v-card-title>
       <chart ref="ageChart"/>
       <chart ref="genderChart"/>
       <chart ref="carAmountChart"/>
@@ -62,6 +62,8 @@
 
 <script>
   import Chart from "@/components/Chart";
+  import chartOption from "@/utils/chartOption";
+  import chartData from "@/utils/chartData";
   export default {
     name: 'UserDisplay',
     components: {
@@ -180,7 +182,6 @@
         this.mapCarAmountChartData[gender]++
       },
 
-
       updateUserInfoListByAgeRange() {
         if (this.ageRangeStart > this.ageRangeEnd) {
           const temp = this.ageRangeStart
@@ -210,132 +211,14 @@
         this.initCharts()
       },
 
-      getAgeChartData() {
-        let seriesData = []
-
-        for (const key in this.mapAgeChartData) {
-          seriesData.push(this.mapAgeChartData[key].length)
-        }
-
-        return {
-          xAxisData : Object.keys(this.mapAgeChartData),
-          seriesData : seriesData
-        }
-      },
-      getGenderChartData() {
-        let seriesData = []
-        for (const key in this.mapGenderChartData) {
-          seriesData.push({
-            value : this.mapGenderChartData[key],
-            name : key
-          })
-        }
-
-        return seriesData
-      },
-      getCarAmountChartData() {
-        let listGenderToCarAmount = []
-        for (const key in this.mapCarAmountChartData) {
-          listGenderToCarAmount.push({
-            gender: key,
-            amount: this.mapCarAmountChartData[key]
-          })
-        }
-
-        listGenderToCarAmount.sort(function(a,b) {
-          return b.amount - a.amount;
-        })
-
-        let genderList = []
-        let seriesData = []
-
-        for (let i = 0; i < listGenderToCarAmount.length; i++) {
-          genderList.push(listGenderToCarAmount[i].gender)
-          seriesData.push(listGenderToCarAmount[i].amount)
-        }
-
-        return {
-          genderList : genderList,
-          seriesData : seriesData
-        }
-      },
-
       setAgeChartOption() {
-        let charData = this.getAgeChartData()
-        this.$refs.ageChart.setChartOption({
-          title: {
-            text: 'Age Chart (Show amount of age by decade)'
-          },
-          tooltip: {},
-          legend: {
-            // data:['Amount of age groups by decade']
-            data:[]
-          },
-          xAxis: {
-            data: charData.xAxisData
-          },
-          yAxis: {},
-          series: [
-            {
-              name: 'Amount',
-              type: 'bar',
-              data: charData.seriesData,
-            }
-          ],
-          color: ['#50AFC0'],
-        })
+        this.$refs.ageChart.setChartOption(chartOption.getAgeCharOption(chartData.getAgeChartData(this.mapAgeChartData)))
       },
       setGenderChartOption() {
-        this.$refs.genderChart.setChartOption({
-          title: {
-            text: 'Percentage of Each Gender'
-          },
-          tooltip: {
-            trigger: "item",
-            formatter: "{a} <br /> {b}: {c} ({d}%)"
-          },
-          series: [
-            {
-              name: "access source",
-              type: "pie",
-              radius: "60%",
-              center: ["50%", "50%"],
-              data: this.getGenderChartData(),
-              itemStyle: {
-                emphasis: {
-                  shadowBlur: 15,
-                  shadowOffsetX: 0,
-                  shadowColor: "rgba (0, 0, 0, 0.1)"
-                }
-              }
-            }
-          ]
-        })
+        this.$refs.genderChart.setChartOption(chartOption.getGenderChartOption(chartData.getGenderChartData(this.mapGenderChartData)))
       },
       setCarAmountChartOption() {
-        const carAmountChartData = this.getCarAmountChartData()
-        this.$refs.carAmountChart.setChartOption({
-          title: {
-            text: 'Desc of Car Amount for Each Gender'
-          },
-          tooltip: {},
-          legend: {
-            // data:['Amount of age groups by decade']
-            data:[]
-          },
-          xAxis: {
-            data: carAmountChartData.genderList
-          },
-          yAxis: {},
-          series: [
-            {
-              name: 'Amount',
-              type: 'bar',
-              data: carAmountChartData.seriesData,
-            }
-          ],
-          color: ['#50AFC0'],
-        })
+        this.$refs.carAmountChart.setChartOption(chartOption.getCarAmountChartOption(chartData.getCarAmountChartData(this.mapCarAmountChartData)))
       },
 
       onAgeRangeStartChange() {
