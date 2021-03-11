@@ -80,6 +80,9 @@
         ageRangeStart: null,
         ageRangeEnd: null,
         mapAgeToUserInfo: {},
+        mapAgeChartData: {},
+        mapGenderChartData: {},
+        mapCarAmountChartData: {}
       };
     },
     computed: {
@@ -107,14 +110,9 @@
     },
     methods: {
       init() {
-        this.processUserInfoList(this.$UserInfoList)
+        this.initMapObjects(this.$UserInfoList)
         this.initAgeRangeVariables()
         this.initCharts()
-      },
-      initCharts() {
-        this.setAgeChartOption()
-        this.setGenderChartOption()
-        this.setCarAmountChartOption()
       },
       initAgeRangeVariables() {
         this.ageRangeStartArray = Object.keys(this.mapAgeToUserInfo)
@@ -124,14 +122,24 @@
 
         this.updateUserInfoListByAgeRange()
       },
-      processUserInfoList(userInfoList) {
+      initCharts() {
+        this.setAgeChartOption()
+        this.setGenderChartOption()
+        this.setCarAmountChartOption()
+      },
+      assembleMapAgeToUserInfoItem(userInfo) {
+        const age = userInfo.age || 0
+        if (!this.mapAgeToUserInfo[age]) {
+          this.mapAgeToUserInfo[age] = []
+        }
+        this.mapAgeToUserInfo[age].push(userInfo)
+      },
+      initMapObjects(userInfoList) {
         for (let i = 0; i < userInfoList.length; i++) {
-          const userInfo = userInfoList[i]
-          const age = userInfo.age || 0
-          if (!this.mapAgeToUserInfo[age]) {
-            this.mapAgeToUserInfo[age] = []
-          }
-          this.mapAgeToUserInfo[age].push(userInfo)
+          this.assembleMapAgeToUserInfoItem(userInfoList[i])
+          this.assembleMapAgeChartDataItem(userInfoList[i])
+          this.assembleMapGenderChartDataItem(userInfoList[i])
+          this.assembleMapCarAmountChartDataItem(userInfoList[i])
         }
       },
       updateUserInfoListByAgeRange() {
@@ -146,36 +154,35 @@
           this.userInfoList = this.userInfoList.concat(this.mapAgeToUserInfo[i])
         }
       },
-      getAgeChartData() {
-        let mapChartData = {}
-        for(let i = 0; i < this.userInfoList.length; i++) {
-          let userInfo = this.userInfoList[i]
-          const age = userInfo.age || 0
-          let divisor = Math.floor(age/10)
-          let remainder = age % 10
-          let key = ""
-          if (remainder > 0) {
-            key = (divisor * 10 + 1)  + "-" + ((divisor + 1) * 10)
+      assembleMapAgeChartDataItem(userInfo) {
+        userInfo = userInfo || {}
+        const age = userInfo.age || 0
+        let divisor = Math.floor(age/10)
+        let remainder = age % 10
+        let key = ""
+        if (remainder > 0) {
+          key = (divisor * 10 + 1)  + "-" + ((divisor + 1) * 10)
+        } else {
+          if (divisor < 1) {
+            key = "0-10"
           } else {
-            if (divisor < 1) {
-              key = "0-10"
-            } else {
-              key = ((divisor - 1) * 10 + 1) + "-" + divisor * 10
-            }
+            key = ((divisor - 1) * 10 + 1) + "-" + divisor * 10
           }
-          if (!mapChartData[key]) {
-            mapChartData[key] = []
-          }
-          mapChartData[key].push(userInfo)
         }
+        if (!this.mapAgeChartData[key]) {
+          this.mapAgeChartData[key] = []
+        }
+        this.mapAgeChartData[key].push(userInfo)
+      },
+      getAgeChartData() {
         let seriesData = []
 
-        for (const key in mapChartData) {
-          seriesData.push(mapChartData[key].length)
+        for (const key in this.mapAgeChartData) {
+          seriesData.push(this.mapAgeChartData[key].length)
         }
 
         return {
-          xAxisData : Object.keys(mapChartData),
+          xAxisData : Object.keys(this.mapAgeChartData),
           seriesData : seriesData
         }
       },
@@ -204,21 +211,19 @@
           color: ['#50AFC0'],
         })
       },
-      getGenderChartData() {
-        let mapGenderToAmount = {}
-        for(let i = 0; i < this.userInfoList.length; i++) {
-          const userInfo = this.userInfoList[i]
-          const gender = userInfo.gender || ""
-          if (!mapGenderToAmount[gender]) {
-            mapGenderToAmount[gender] = 1
-          }
-          mapGenderToAmount[gender]++
+      assembleMapGenderChartDataItem(userInfo) {
+        userInfo = userInfo || {}
+        const gender = userInfo.gender || ""
+        if (!this.mapGenderChartData[gender]) {
+          this.mapGenderChartData[gender] = 1
         }
-
+        this.mapGenderChartData[gender]++
+      },
+      getGenderChartData() {
         let seriesData = []
-        for (const key in mapGenderToAmount) {
+        for (const key in this.mapGenderChartData) {
           seriesData.push({
-            value : mapGenderToAmount[key],
+            value : this.mapGenderChartData[key],
             name : key
           })
         }
@@ -252,22 +257,20 @@
           ]
         })
       },
-      getCarAmountChartData() {
-        let mapGenderToCarAmount = {}
-        for(let i = 0; i < this.userInfoList.length; i++) {
-          const userInfo = this.userInfoList[i]
-          const gender = userInfo.gender || ""
-          if (!mapGenderToCarAmount[gender]) {
-            mapGenderToCarAmount[gender] = 1
-          }
-          mapGenderToCarAmount[gender]++
+      assembleMapCarAmountChartDataItem(userInfo) {
+        userInfo = userInfo || {}
+        const gender = userInfo.gender || ""
+        if (!this.mapCarAmountChartData[gender]) {
+          this.mapCarAmountChartData[gender] = 1
         }
-
+        this.mapCarAmountChartData[gender]++
+      },
+      getCarAmountChartData() {
         let listGenderToCarAmount = []
-        for (const key in mapGenderToCarAmount) {
+        for (const key in this.mapCarAmountChartData) {
           listGenderToCarAmount.push({
             gender: key,
-            amount: mapGenderToCarAmount[key]
+            amount: this.mapCarAmountChartData[key]
           })
         }
 
@@ -284,10 +287,9 @@
         }
 
         return {
-          genderList : Object.keys(mapGenderToCarAmount),
+          genderList : genderList,
           seriesData : seriesData
         }
-
       },
       setCarAmountChartOption() {
         const carAmountChartData = this.getCarAmountChartData()
@@ -314,13 +316,27 @@
           color: ['#50AFC0'],
         })
       },
-      onAgeRangeStartChange() {
+      updateCharData(){
+        this.mapAgeChartData = {}
+        this.mapGenderChartData = {}
+        this.mapCarAmountChartData = {}
+
+        for (let i = 0; i < this.userInfoList.length; i++) {
+          this.assembleMapAgeChartDataItem(this.userInfoList[i])
+          this.assembleMapGenderChartDataItem(this.userInfoList[i])
+          this.assembleMapCarAmountChartDataItem(this.userInfoList[i])
+        }
+      },
+      updateTableAndChartsAfterAdjustAge() {
         this.updateUserInfoListByAgeRange()
+        this.updateCharData()
         this.initCharts()
       },
+      onAgeRangeStartChange() {
+        this.updateTableAndChartsAfterAdjustAge()
+      },
       onAgeRangeEndChange() {
-        this.updateUserInfoListByAgeRange()
-        this.initCharts()
+        this.updateTableAndChartsAfterAdjustAge()
       },
       onDataTableClick(value) {
         alert('You clicked ' + value.name + ", " + value.gender + "," + value.age + " years old, have a/an " + value.car_make +", whose Email is " + value.email);
