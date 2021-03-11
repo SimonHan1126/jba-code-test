@@ -1,32 +1,65 @@
 <template>
-  <v-container>
-    <div id="app">
-      <v-app id="inspire">
-        <template>
-          <div>Table</div>
-          <v-divider/>
-          <div>
-            <v-data-table
-              dense
-              :headers="headers"
-              :items="userInfoList"
-              item-key="name"
-              class="elevation-1"
-              :search="search"
-            >
-            </v-data-table>
-          </div>
-          <v-divider/>
-          <div></div>
-          <v-divider/>
-            <AgeChart/>
-            <GenderChart/>
-            <CarAmountChart/>
-          <v-divider/>
-        </template>
-      </v-app>
-    </div>
-  </v-container>
+  <div>
+    <v-card-title>Table</v-card-title>
+    <v-container>
+      <v-row justify="center" align="center">
+        <v-col
+          cols="1"
+        >
+          <v-card-text font-size="18px">Age:</v-card-text>
+        </v-col>
+        <v-col
+          cols="5"
+        >
+          <v-container>
+            <v-select
+              v-model="ageRangeStart"
+              :items="ageRangeStartArray"
+              @change="onAgeRangeStartChange"
+            />
+          </v-container>
+        </v-col>
+        <v-col
+          cols="1"
+        >
+          <v-card-text font-size="18px">to</v-card-text>
+        </v-col>
+        <v-col
+          cols="5"
+        >
+          <v-container>
+            <v-select
+              v-model="ageRangeEnd"
+              :items="ageRangeEndArray"
+              @change="onAgeRangeEndChange"
+            />
+          </v-container>
+        </v-col>
+      </v-row>
+    </v-container>
+    <v-divider/>
+    <v-container>
+      <v-data-table
+        dense
+        :headers="headers"
+        :items="userInfoList"
+        item-key="name"
+        :search="search"
+      >
+      </v-data-table>
+    </v-container>
+    <v-container>
+      <v-divider/>
+      <v-card-title>Charts</v-card-title>
+      <v-divider/>
+      <AgeChart/>
+      <v-divider/>
+      <GenderChart/>
+      <v-divider/>
+      <CarAmountChart/>
+      <v-divider/>
+    </v-container>
+  </div>
 </template>
 
 <script>
@@ -47,10 +80,12 @@
       return {
         search: "",
         name: "",
-        calories: "",
-        fat: "",
-        carbs: "",
-        userInfoList: this.$UserInfoList
+        userInfoList: this.$UserInfoList,
+        ageRangeStartArray: [],
+        ageRangeEndArray: [],
+        ageRangeStart: null,
+        ageRangeEnd: null,
+        mapAgeToUserInfo: {},
       };
     },
     computed: {
@@ -58,41 +93,62 @@
         return [
           {
             text: "Age",
-            // align: "left",
-            // sortable: false,
             value: "age",
-            // filter: f => { return ( f + '' ).toLowerCase().includes( this[ 'name' ].toLowerCase() ) }
           },
           {
             text: "Gender",
             value: "gender",
-            // filter: value => {
-            //   if (!this.calories) return true;
-            //   return value < parseInt(this.calories);
-            // }
           },
           {
             text: "Name",
             value: "name",
-            // filter: value => {
-            //   if (!this.fat) return true;
-            //   return value < parseInt(this.fat);
-            // }
+            sortable: false,
           },
           {
             text: "Car Make",
             value: "car_make",
-            // filter: value => {
-            //   if (!this.carbs) return true;
-            //   return value == parseInt(this.carbs);
-            // }
           }
         ];
       }
     },
     methods: {
       init() {
-        // console.log("UserInfoList " + JSON.stringify(this.$UserInfoList))
+        this.processUserInfoList(this.$UserInfoList)
+        this.initAgeRange()
+      },
+      initAgeRange() {
+        this.ageRangeStartArray = Object.keys(this.mapAgeToUserInfo)
+        this.ageRangeEndArray = this.ageRangeStartArray
+        this.ageRangeStart = this.ageRangeStartArray[0];
+        this.ageRangeEnd = this.ageRangeEndArray[this.ageRangeEndArray.length - 1]
+      },
+      processUserInfoList(userInfoList) {
+        for (let i = 0; i < userInfoList.length; i++) {
+          const userInfo = userInfoList[i]
+          const age = userInfo.age
+          if (!this.mapAgeToUserInfo[age]) {
+            this.mapAgeToUserInfo[age] = []
+          }
+          this.mapAgeToUserInfo[age].push(userInfo)
+        }
+      },
+      updateUserInfoListByAgeRange() {
+        if (this.ageRangeStart > this.ageRangeEnd) {
+          const temp = this.ageRangeStart
+          this.ageRangeStart = this.ageRangeEnd
+          this.ageRangeEnd = temp
+        }
+
+        this.userInfoList = []
+        for (let i = this.ageRangeStart; i <= this.ageRangeEnd; i++) {
+          this.userInfoList = this.userInfoList.concat(this.mapAgeToUserInfo[i])
+        }
+      },
+      onAgeRangeStartChange() {
+        this.updateUserInfoListByAgeRange()
+      },
+      onAgeRangeEndChange() {
+        this.updateUserInfoListByAgeRange()
       }
     }
   }
