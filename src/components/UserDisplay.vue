@@ -127,13 +127,6 @@
         this.setGenderChartOption()
         this.setCarAmountChartOption()
       },
-      assembleMapAgeToUserInfoItem(userInfo) {
-        const age = userInfo.age || 0
-        if (!this.mapAgeToUserInfo[age]) {
-          this.mapAgeToUserInfo[age] = []
-        }
-        this.mapAgeToUserInfo[age].push(userInfo)
-      },
       initMapObjects(userInfoList) {
         for (let i = 0; i < userInfoList.length; i++) {
           this.assembleMapAgeToUserInfoItem(userInfoList[i])
@@ -142,17 +135,13 @@
           this.assembleMapCarAmountChartDataItem(userInfoList[i])
         }
       },
-      updateUserInfoListByAgeRange() {
-        if (this.ageRangeStart > this.ageRangeEnd) {
-          const temp = this.ageRangeStart
-          this.ageRangeStart = this.ageRangeEnd
-          this.ageRangeEnd = temp
-        }
 
-        this.userInfoList = []
-        for (let i = this.ageRangeStart; i <= this.ageRangeEnd; i++) {
-          this.userInfoList = this.userInfoList.concat(this.mapAgeToUserInfo[i])
+      assembleMapAgeToUserInfoItem(userInfo) {
+        const age = userInfo.age || 0
+        if (!this.mapAgeToUserInfo[age]) {
+          this.mapAgeToUserInfo[age] = []
         }
+        this.mapAgeToUserInfo[age].push(userInfo)
       },
       assembleMapAgeChartDataItem(userInfo) {
         userInfo = userInfo || {}
@@ -174,6 +163,53 @@
         }
         this.mapAgeChartData[key].push(userInfo)
       },
+      assembleMapGenderChartDataItem(userInfo) {
+        userInfo = userInfo || {}
+        const gender = userInfo.gender || ""
+        if (!this.mapGenderChartData[gender]) {
+          this.mapGenderChartData[gender] = 1
+        }
+        this.mapGenderChartData[gender]++
+      },
+      assembleMapCarAmountChartDataItem(userInfo) {
+        userInfo = userInfo || {}
+        const gender = userInfo.gender || ""
+        if (!this.mapCarAmountChartData[gender]) {
+          this.mapCarAmountChartData[gender] = 1
+        }
+        this.mapCarAmountChartData[gender]++
+      },
+
+
+      updateUserInfoListByAgeRange() {
+        if (this.ageRangeStart > this.ageRangeEnd) {
+          const temp = this.ageRangeStart
+          this.ageRangeStart = this.ageRangeEnd
+          this.ageRangeEnd = temp
+        }
+
+        this.userInfoList = []
+        for (let i = this.ageRangeStart; i <= this.ageRangeEnd; i++) {
+          this.userInfoList = this.userInfoList.concat(this.mapAgeToUserInfo[i])
+        }
+      },
+      updateCharData(){
+        this.mapAgeChartData = {}
+        this.mapGenderChartData = {}
+        this.mapCarAmountChartData = {}
+
+        for (let i = 0; i < this.userInfoList.length; i++) {
+          this.assembleMapAgeChartDataItem(this.userInfoList[i])
+          this.assembleMapGenderChartDataItem(this.userInfoList[i])
+          this.assembleMapCarAmountChartDataItem(this.userInfoList[i])
+        }
+      },
+      updateTableAndChartsAfterAdjustAge() {
+        this.updateUserInfoListByAgeRange()
+        this.updateCharData()
+        this.initCharts()
+      },
+
       getAgeChartData() {
         let seriesData = []
 
@@ -186,6 +222,44 @@
           seriesData : seriesData
         }
       },
+      getGenderChartData() {
+        let seriesData = []
+        for (const key in this.mapGenderChartData) {
+          seriesData.push({
+            value : this.mapGenderChartData[key],
+            name : key
+          })
+        }
+
+        return seriesData
+      },
+      getCarAmountChartData() {
+        let listGenderToCarAmount = []
+        for (const key in this.mapCarAmountChartData) {
+          listGenderToCarAmount.push({
+            gender: key,
+            amount: this.mapCarAmountChartData[key]
+          })
+        }
+
+        listGenderToCarAmount.sort(function(a,b) {
+          return b.amount - a.amount;
+        })
+
+        let genderList = []
+        let seriesData = []
+
+        for (let i = 0; i < listGenderToCarAmount.length; i++) {
+          genderList.push(listGenderToCarAmount[i].gender)
+          seriesData.push(listGenderToCarAmount[i].amount)
+        }
+
+        return {
+          genderList : genderList,
+          seriesData : seriesData
+        }
+      },
+
       setAgeChartOption() {
         let charData = this.getAgeChartData()
         this.$refs.ageChart.setChartOption({
@@ -210,25 +284,6 @@
           ],
           color: ['#50AFC0'],
         })
-      },
-      assembleMapGenderChartDataItem(userInfo) {
-        userInfo = userInfo || {}
-        const gender = userInfo.gender || ""
-        if (!this.mapGenderChartData[gender]) {
-          this.mapGenderChartData[gender] = 1
-        }
-        this.mapGenderChartData[gender]++
-      },
-      getGenderChartData() {
-        let seriesData = []
-        for (const key in this.mapGenderChartData) {
-          seriesData.push({
-            value : this.mapGenderChartData[key],
-            name : key
-          })
-        }
-
-        return seriesData
       },
       setGenderChartOption() {
         this.$refs.genderChart.setChartOption({
@@ -257,40 +312,6 @@
           ]
         })
       },
-      assembleMapCarAmountChartDataItem(userInfo) {
-        userInfo = userInfo || {}
-        const gender = userInfo.gender || ""
-        if (!this.mapCarAmountChartData[gender]) {
-          this.mapCarAmountChartData[gender] = 1
-        }
-        this.mapCarAmountChartData[gender]++
-      },
-      getCarAmountChartData() {
-        let listGenderToCarAmount = []
-        for (const key in this.mapCarAmountChartData) {
-          listGenderToCarAmount.push({
-            gender: key,
-            amount: this.mapCarAmountChartData[key]
-          })
-        }
-
-        listGenderToCarAmount.sort(function(a,b) {
-          return b.amount - a.amount;
-        })
-
-        let genderList = []
-        let seriesData = []
-
-        for (let i = 0; i < listGenderToCarAmount.length; i++) {
-          genderList.push(listGenderToCarAmount[i].gender)
-          seriesData.push(listGenderToCarAmount[i].amount)
-        }
-
-        return {
-          genderList : genderList,
-          seriesData : seriesData
-        }
-      },
       setCarAmountChartOption() {
         const carAmountChartData = this.getCarAmountChartData()
         this.$refs.carAmountChart.setChartOption({
@@ -316,22 +337,7 @@
           color: ['#50AFC0'],
         })
       },
-      updateCharData(){
-        this.mapAgeChartData = {}
-        this.mapGenderChartData = {}
-        this.mapCarAmountChartData = {}
 
-        for (let i = 0; i < this.userInfoList.length; i++) {
-          this.assembleMapAgeChartDataItem(this.userInfoList[i])
-          this.assembleMapGenderChartDataItem(this.userInfoList[i])
-          this.assembleMapCarAmountChartDataItem(this.userInfoList[i])
-        }
-      },
-      updateTableAndChartsAfterAdjustAge() {
-        this.updateUserInfoListByAgeRange()
-        this.updateCharData()
-        this.initCharts()
-      },
       onAgeRangeStartChange() {
         this.updateTableAndChartsAfterAdjustAge()
       },
