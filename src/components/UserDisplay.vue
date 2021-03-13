@@ -1,42 +1,11 @@
 <template>
   <div>
     <v-card-title>Table</v-card-title>
-    <v-container>
-      <v-row justify="center" align="center">
-        <v-col
-          cols="1"
-        >
-          <v-card-text >Age:</v-card-text>
-        </v-col>
-        <v-col
-          cols="5"
-        >
-          <v-container>
-            <v-select
-              v-model="ageRangeStart"
-              :items="ageRangeStartArray"
-              @change="onAgeRangeStartChange"
-            />
-          </v-container>
-        </v-col>
-        <v-col
-          cols="1"
-        >
-          <v-card-text >to</v-card-text>
-        </v-col>
-        <v-col
-          cols="5"
-        >
-          <v-container>
-            <v-select
-              v-model="ageRangeEnd"
-              :items="ageRangeEndArray"
-              @change="onAgeRangeEndChange"
-            />
-          </v-container>
-        </v-col>
-      </v-row>
-    </v-container>
+    <AgeRangeAdjust
+      ref="ageRangeAdjust"
+      @onAgeRangeStartChange="onAgeRangeStartChange"
+      @onAgeRangeEndChange="onAgeRangeEndChange"
+    />
     <v-divider/>
     <Table ref="userInfoTable" @onDataTableClick="onDataTableClick"/>
     <v-divider/>
@@ -53,13 +22,15 @@
 <script>
   import Chart from "@/components/Chart";
   import Table from "@/components/Table";
+  import AgeRangeAdjust from "@/components/AgeRangeAdjust";
   import chartOption from "@/data/charts/chartOption";
   import chartData from "@/data/charts/chartData";
   export default {
     name: 'UserDisplay',
     components: {
       Chart,
-      Table
+      Table,
+      AgeRangeAdjust
     },
     mounted() {
       this.initialize()
@@ -67,10 +38,6 @@
     data() {
       return {
         userInfoList: [], // this array contains information about all users in the age range selected in the page
-        ageRangeStartArray: [], // Contains selectable age ranges, displayed in the first dropdown menu
-        ageRangeEndArray: [], // Contains selectable age ranges, displayed in the first dropdown menu
-        ageRangeStart: 0, // start of age range
-        ageRangeEnd: 0, // end of age range
         mapAgeToUserInfo: {}, // key: age, value: an array containing all the user information under the age in the key
         mapAgeChartData: {}, // data displayed in age chart
         mapGenderChartData: {}, // data displayed in gender chart
@@ -87,12 +54,9 @@
       },
 
       initializeAgeRangeVariables() {
-        this.ageRangeStartArray = Object.keys(this.mapAgeToUserInfo)
-        this.ageRangeEndArray = this.ageRangeStartArray
-        this.ageRangeStart = this.ageRangeStartArray[0];
-        this.ageRangeEnd = this.ageRangeEndArray[this.ageRangeEndArray.length - 1]
-
-        this.updateUserInfoListByAgeRange()
+        const allAgesArray = Object.keys(this.mapAgeToUserInfo) || []
+        this.setAgeRangeAdjustDropMenuContentData(allAgesArray)
+        this.setUserInfoListByAgeRange(allAgesArray[0], allAgesArray[allAgesArray.length - 1])
       },
       initializeCharts() {
         this.setDataToCharts()
@@ -153,19 +117,22 @@
         this.mapCarAmountChartData[gender]++
       },
 
-      updateUserInfoListByAgeRange() {
-        if (this.ageRangeStart > this.ageRangeEnd) {
-          const temp = this.ageRangeStart
-          this.ageRangeStart = this.ageRangeEnd
-          this.ageRangeEnd = temp
-        }
+      updateDataWhenAgeRangeChange(ageRangeInfoObject) {
+        const ageRangeStart = ageRangeInfoObject.ageRangeStart
+        const ageRangeEnd = ageRangeInfoObject.ageRangeEnd
+        this.setUserInfoListByAgeRange(ageRangeStart, ageRangeEnd)
+        this.setChartsData()
+        this.setDataToUserInfoTable()
+        this.setDataToCharts()
+      },
 
+      setUserInfoListByAgeRange(ageRangeStart, ageRangeEnd) {
         this.userInfoList = []
-        for (let i = this.ageRangeStart; i <= this.ageRangeEnd; i++) {
+        for (let i = ageRangeStart; i <= ageRangeEnd; i++) {
           this.userInfoList = this.userInfoList.concat(this.mapAgeToUserInfo[i])
         }
       },
-      updateChartsData(){
+      setChartsData(){
         this.mapAgeChartData = {}
         this.mapGenderChartData = {}
         this.mapCarAmountChartData = {}
@@ -176,22 +143,15 @@
           this.assembleMapCarAmountChartDataItem(this.userInfoList[i])
         }
       },
-      updateTableAndChartsDataAfterAdjustAge() {
-        this.updateUserInfoListByAgeRange()
-        this.updateChartsData()
-      },
-      updateDataWhenAgeRangeChange() {
-        this.updateTableAndChartsDataAfterAdjustAge()
-        this.setDataToUserInfoTable()
-        this.setDataToCharts()
-      },
-
       setDataToCharts() {
         this.setAgeChartOption()
         this.setGenderChartOption()
         this.setCarAmountChartOption()
       },
-
+      setAgeRangeAdjustDropMenuContentData(allAgesArray) {
+        this.$refs.ageRangeAdjust.setAgeRangeStartVariables(allAgesArray)
+        this.$refs.ageRangeAdjust.setAgeRangeEndVariables(allAgesArray)
+      },
       setDataToUserInfoTable() {
         this.$refs.userInfoTable.setUserInfoList(this.userInfoList)
       },
@@ -205,11 +165,13 @@
         this.$refs.carAmountChart.setChartOption(chartOption.getCarAmountChartOption(chartData.getCarAmountChartData(this.mapCarAmountChartData)))
       },
 
-      onAgeRangeStartChange() {
-        this.updateDataWhenAgeRangeChange()
+      onAgeRangeStartChange(value) {
+        console.log("onAgeRangeStartChange value " + JSON.stringify(value))
+        this.updateDataWhenAgeRangeChange(value)
       },
-      onAgeRangeEndChange() {
-        this.updateDataWhenAgeRangeChange()
+      onAgeRangeEndChange(value) {
+        console.log("onAgeRangeEndChange value " + JSON.stringify(value))
+        this.updateDataWhenAgeRangeChange(value)
       },
       onDataTableClick(value) {
         alert('You clicked ' + value.name + ", " + value.gender + "," + value.age + " years old, have a/an " + value.car_make +", whose Email is " + value.email);
