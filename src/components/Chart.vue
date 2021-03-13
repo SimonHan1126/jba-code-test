@@ -1,6 +1,5 @@
 <template>
   <div>
-    <v-divider/>
     <div ref="refEcharts" class="chartStyle"></div>
   </div>
 </template>

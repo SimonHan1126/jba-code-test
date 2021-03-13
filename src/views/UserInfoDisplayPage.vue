@@ -14,7 +14,6 @@
       <chart ref="ageChart"/>
       <chart ref="genderChart"/>
       <chart ref="carAmountChart"/>
-      <v-divider/>
     </v-container>
   </div>
 </template>
@@ -28,7 +27,7 @@
   import mapObjects from "@/data/mapObjects";
   import usersInfo from "@/data/usersInfo";
   export default {
-    name: 'UserDisplay',
+    name: 'UserInfoDisplayPage',
     components: {
       Chart,
       Table,
