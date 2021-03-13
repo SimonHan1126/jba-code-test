@@ -62,29 +62,29 @@
 
 <script>
   import Chart from "@/components/Chart";
-  import chartOption from "@/utils/chartOption";
-  import chartData from "@/utils/chartData";
+  import chartOption from "@/data/charts/chartOption";
+  import chartData from "@/data/charts/chartData";
   export default {
     name: 'UserDisplay',
     components: {
       Chart
     },
     mounted() {
-      this.init()
+      this.initialize()
     },
     data() {
       return {
         search: "",
         name: "",
-        userInfoList: [],
-        ageRangeStartArray: [],
-        ageRangeEndArray: [],
-        ageRangeStart: null,
-        ageRangeEnd: null,
-        mapAgeToUserInfo: {},
-        mapAgeChartData: {},
-        mapGenderChartData: {},
-        mapCarAmountChartData: {}
+        userInfoList: [], // this array contains information about all users in the age range selected in the page
+        ageRangeStartArray: [], // Contains selectable age ranges, displayed in the first dropdown menu
+        ageRangeEndArray: [], // Contains selectable age ranges, displayed in the first dropdown menu
+        ageRangeStart: 0, // start of age range
+        ageRangeEnd: 0, // end of age range
+        mapAgeToUserInfo: {}, // key: age, value: an array containing all the user information under the age in the key
+        mapAgeChartData: {}, // data displayed in age chart
+        mapGenderChartData: {}, // data displayed in gender chart
+        mapCarAmountChartData: {} // data displayed in car amount chart
       };
     },
     computed: {
@@ -111,12 +111,12 @@
       }
     },
     methods: {
-      init() {
-        this.initMapObjects(this.$UserInfoList)
-        this.initAgeRangeVariables()
-        this.initCharts()
+      initialize() {
+        this.initializeMapObjects(this.$UserInfoList)
+        this.initializeAgeRangeVariables()
+        this.initializeCharts()
       },
-      initAgeRangeVariables() {
+      initializeAgeRangeVariables() {
         this.ageRangeStartArray = Object.keys(this.mapAgeToUserInfo)
         this.ageRangeEndArray = this.ageRangeStartArray
         this.ageRangeStart = this.ageRangeStartArray[0];
@@ -124,12 +124,12 @@
 
         this.updateUserInfoListByAgeRange()
       },
-      initCharts() {
+      initializeCharts() {
         this.setAgeChartOption()
         this.setGenderChartOption()
         this.setCarAmountChartOption()
       },
-      initMapObjects(userInfoList) {
+      initializeMapObjects(userInfoList) {
         for (let i = 0; i < userInfoList.length; i++) {
           this.assembleMapAgeToUserInfoItem(userInfoList[i])
           this.assembleMapAgeChartDataItem(userInfoList[i])
@@ -208,9 +208,9 @@
       updateTableAndChartsAfterAdjustAge() {
         this.updateUserInfoListByAgeRange()
         this.updateCharData()
-        this.initCharts()
+        this.initializeCharts()
       },
-
+      
       setAgeChartOption() {
         this.$refs.ageChart.setChartOption(chartOption.getAgeCharOption(chartData.getAgeChartData(this.mapAgeChartData)))
       },
