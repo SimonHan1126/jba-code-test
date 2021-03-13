@@ -44,7 +44,6 @@
         mapCarAmountChartData: {} // data displayed in car amount chart
       };
     },
-
     methods: {
       initialize() {
         this.initializeMapObjects(this.$UserInfoList)

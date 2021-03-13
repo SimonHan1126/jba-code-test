@@ -1,18 +1,18 @@
 <template>
   <v-app>
     <v-main>
-      <UserDisplay/>
+      <UserInfoDisplayPage/>
     </v-main>
   </v-app>
 </template>
 
 <script>
-import UserDisplay from './components/UserDisplay';
+import UserInfoDisplayPage from './views/UserInfoDisplayPage';
 
 export default {
   name: 'App',
   components: {
-    UserDisplay,
+    UserInfoDisplayPage,
   },
 };
 </script>
