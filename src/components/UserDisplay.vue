@@ -38,17 +38,7 @@
       </v-row>
     </v-container>
     <v-divider/>
-    <v-container>
-      <v-data-table
-        dense
-        :headers="headers"
-        :items="userInfoList"
-        item-key="name"
-        :search="search"
-        @click:row="onDataTableClick"
-      >
-      </v-data-table>
-    </v-container>
+    <Table ref="userInfoTable" @onDataTableClick="onDataTableClick"/>
     <v-divider/>
     <v-card-title>Charts</v-card-title>
     <v-container>
@@ -62,20 +52,20 @@
 
 <script>
   import Chart from "@/components/Chart";
+  import Table from "@/components/Table";
   import chartOption from "@/data/charts/chartOption";
   import chartData from "@/data/charts/chartData";
   export default {
     name: 'UserDisplay',
     components: {
-      Chart
+      Chart,
+      Table
     },
     mounted() {
       this.initialize()
     },
     data() {
       return {
-        search: "",
-        name: "",
         userInfoList: [], // this array contains information about all users in the age range selected in the page
         ageRangeStartArray: [], // Contains selectable age ranges, displayed in the first dropdown menu
         ageRangeEndArray: [], // Contains selectable age ranges, displayed in the first dropdown menu
@@ -87,35 +77,15 @@
         mapCarAmountChartData: {} // data displayed in car amount chart
       };
     },
-    computed: {
-      headers() {
-        return [
-          {
-            text: "Age",
-            value: "age",
-          },
-          {
-            text: "Gender",
-            value: "gender",
-          },
-          {
-            text: "Name",
-            value: "name",
-            sortable: false,
-          },
-          {
-            text: "Car Make",
-            value: "car_make",
-          }
-        ];
-      }
-    },
+
     methods: {
       initialize() {
         this.initializeMapObjects(this.$UserInfoList)
         this.initializeAgeRangeVariables()
+        this.initializeUserInfoTable()
         this.initializeCharts()
       },
+
       initializeAgeRangeVariables() {
         this.ageRangeStartArray = Object.keys(this.mapAgeToUserInfo)
         this.ageRangeEndArray = this.ageRangeStartArray
@@ -125,9 +95,7 @@
         this.updateUserInfoListByAgeRange()
       },
       initializeCharts() {
-        this.setAgeChartOption()
-        this.setGenderChartOption()
-        this.setCarAmountChartOption()
+        this.setDataToCharts()
       },
       initializeMapObjects(userInfoList) {
         for (let i = 0; i < userInfoList.length; i++) {
@@ -136,6 +104,9 @@
           this.assembleMapGenderChartDataItem(userInfoList[i])
           this.assembleMapCarAmountChartDataItem(userInfoList[i])
         }
+      },
+      initializeUserInfoTable() {
+        this.setDataToUserInfoTable()
       },
 
       assembleMapAgeToUserInfoItem(userInfo) {
@@ -194,7 +165,7 @@
           this.userInfoList = this.userInfoList.concat(this.mapAgeToUserInfo[i])
         }
       },
-      updateCharData(){
+      updateChartsData(){
         this.mapAgeChartData = {}
         this.mapGenderChartData = {}
         this.mapCarAmountChartData = {}
@@ -205,12 +176,25 @@
           this.assembleMapCarAmountChartDataItem(this.userInfoList[i])
         }
       },
-      updateTableAndChartsAfterAdjustAge() {
+      updateTableAndChartsDataAfterAdjustAge() {
         this.updateUserInfoListByAgeRange()
-        this.updateCharData()
-        this.initializeCharts()
+        this.updateChartsData()
       },
-      
+      updateDataWhenAgeRangeChange() {
+        this.updateTableAndChartsDataAfterAdjustAge()
+        this.setDataToUserInfoTable()
+        this.setDataToCharts()
+      },
+
+      setDataToCharts() {
+        this.setAgeChartOption()
+        this.setGenderChartOption()
+        this.setCarAmountChartOption()
+      },
+
+      setDataToUserInfoTable() {
+        this.$refs.userInfoTable.setUserInfoList(this.userInfoList)
+      },
       setAgeChartOption() {
         this.$refs.ageChart.setChartOption(chartOption.getAgeCharOption(chartData.getAgeChartData(this.mapAgeChartData)))
       },
@@ -222,10 +206,10 @@
       },
 
       onAgeRangeStartChange() {
-        this.updateTableAndChartsAfterAdjustAge()
+        this.updateDataWhenAgeRangeChange()
       },
       onAgeRangeEndChange() {
-        this.updateTableAndChartsAfterAdjustAge()
+        this.updateDataWhenAgeRangeChange()
       },
       onDataTableClick(value) {
         alert('You clicked ' + value.name + ", " + value.gender + "," + value.age + " years old, have a/an " + value.car_make +", whose Email is " + value.email);
