@@ -3,6 +3,18 @@ let mapObjects = {
   mapAgeChartData: {},          // data displayed in age chart
   mapGenderChartData: {},       // data displayed in gender chart
   mapCarAmountChartData: {},    // data displayed in car amount chart
+  getMapAgeToUserInfo() {
+    return this.mapAgeToUserInfo
+  },
+  getMapAgeChartData() {
+    return this.mapAgeChartData
+  },
+  getMapGenderChartData() {
+    return this.mapGenderChartData
+  },
+  getMapCarAmountChartData(){
+    return this.mapCarAmountChartData
+  },
   assembleMapAgeToUserInfoItem(userInfo) {
     const age = userInfo.age || 0
     if (!this.mapAgeToUserInfo[age]) {

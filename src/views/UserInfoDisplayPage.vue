@@ -26,6 +26,7 @@
   import chartOption from "@/data/chartOption";
   import chartData from "@/data/chartData";
   import mapObjects from "@/data/mapObjects";
+  import usersInfo from "@/data/usersInfo";
   export default {
     name: 'UserDisplay',
     components: {
@@ -36,11 +37,6 @@
     mounted() {
       this.initialize()
     },
-    data() {
-      return {
-        userInfoList: [], // this array contains information about all users in the age range selected in the page
-      };
-    },
     methods: {
       initialize() {
         this.initializeMapObjects()
@@ -50,7 +46,7 @@
       },
 
       initializeAgeRangeVariables() {
-        const allAgesArray = Object.keys(mapObjects.mapAgeToUserInfo) || []
+        const allAgesArray = Object.keys(mapObjects.getMapAgeToUserInfo()) || []
         this.setAgeRangeAdjustDropMenuContentData(allAgesArray)
         this.setUserInfoListByAgeRange(allAgesArray[0], allAgesArray[allAgesArray.length - 1])
       },
@@ -74,13 +70,10 @@
       },
 
       setUserInfoListByAgeRange(ageRangeStart, ageRangeEnd) {
-        this.userInfoList = []
-        for (let i = ageRangeStart; i <= ageRangeEnd; i++) {
-          this.userInfoList = this.userInfoList.concat(mapObjects.mapAgeToUserInfo[i])
-        }
+        usersInfo.setUserInfoListByAgeRange(ageRangeStart, ageRangeEnd, mapObjects.getMapAgeToUserInfo())
       },
       setChartsData(){
-        mapObjects.updateMapData(this.userInfoList)
+        mapObjects.updateMapData(usersInfo.getUserInfoList())
       },
       setChartsOption() {
         this.setAgeChartOption()
@@ -92,16 +85,16 @@
         this.$refs.ageRangeAdjust.setAgeRangeEndVariables(allAgesArray)
       },
       setDataToUserInfoTable() {
-        this.$refs.userInfoTable.setUserInfoList(this.userInfoList)
+        this.$refs.userInfoTable.setUserInfoList(usersInfo.getUserInfoList())
       },
       setAgeChartOption() {
-        this.$refs.ageChart.setChartOption(chartOption.getAgeCharOption(chartData.getAgeChartData(mapObjects.mapAgeChartData)))
+        this.$refs.ageChart.setChartOption(chartOption.getAgeCharOption(chartData.getAgeChartData(mapObjects.getMapAgeChartData())))
       },
       setGenderChartOption() {
-        this.$refs.genderChart.setChartOption(chartOption.getGenderChartOption(chartData.getGenderChartData(mapObjects.mapGenderChartData)))
+        this.$refs.genderChart.setChartOption(chartOption.getGenderChartOption(chartData.getGenderChartData(mapObjects.getMapGenderChartData())))
       },
       setCarAmountChartOption() {
-        this.$refs.carAmountChart.setChartOption(chartOption.getCarAmountChartOption(chartData.getCarAmountChartData(mapObjects.mapCarAmountChartData)))
+        this.$refs.carAmountChart.setChartOption(chartOption.getCarAmountChartOption(chartData.getCarAmountChartData(mapObjects.getMapCarAmountChartData())))
       },
 
       onAgeRangeStartChange(value) {
