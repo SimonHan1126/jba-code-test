@@ -59,6 +59,12 @@ let mapObjects = {
     this.mapCarAmountChartData[gender]++
   },
   initializeMapData(userInfoList) {
+
+    // sort userInfoList by age (asc)
+    userInfoList.sort(function(a,b) {
+      return a.age - b.age;
+    })
+
     for (let i = 0; i < userInfoList.length; i++) {
       this.assembleMapAgeToUserInfoItem(userInfoList[i])
       this.assembleMapAgeChartDataItem(userInfoList[i])
