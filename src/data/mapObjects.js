@@ -46,7 +46,7 @@ let mapObjects = {
     userInfo = userInfo || {}
     const gender = userInfo.gender || ""
     if (!this.mapGenderChartData[gender]) {
-      this.mapGenderChartData[gender] = 1
+      this.mapGenderChartData[gender] = 0
     }
     this.mapGenderChartData[gender]++
   },
@@ -54,7 +54,7 @@ let mapObjects = {
     userInfo = userInfo || {}
     const gender = userInfo.gender || ""
     if (!this.mapCarAmountChartData[gender]) {
-      this.mapCarAmountChartData[gender] = 1
+      this.mapCarAmountChartData[gender] = 0
     }
     this.mapCarAmountChartData[gender]++
   },
