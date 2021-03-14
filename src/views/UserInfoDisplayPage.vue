@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <v-container>
     <v-card-title>Table</v-card-title>
     <AgeRangeAdjust
       ref="ageRangeAdjust"
@@ -10,12 +10,12 @@
     <Table ref="userInfoTable" @onDataTableClick="onDataTableClick"/>
     <v-divider/>
     <v-card-title>Charts</v-card-title>
-    <v-container>
+    <v-container >
       <chart ref="ageChart"/>
       <chart ref="genderChart"/>
       <chart ref="carAmountChart"/>
     </v-container>
-  </div>
+  </v-container>
 </template>
 
 <script>

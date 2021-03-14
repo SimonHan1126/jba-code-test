@@ -1,7 +1,5 @@
 <template>
-  <div>
-    <div ref="refEcharts" class="chartStyle"></div>
-  </div>
+  <v-container ref="refEcharts" class="chartStyle"></v-container>
 </template>
 
 <script>
@@ -27,8 +25,6 @@
   .chartStyle {
     width: 1000px;
     height:400px;
-    float: left;
-    margin: 0 auto;
   }
 </style>
 
